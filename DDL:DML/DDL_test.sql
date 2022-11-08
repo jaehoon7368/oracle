@@ -170,10 +170,39 @@ from
     tb_student
 with read only;
 
-/*
-15. 춘 기술대학교는 매년 수강신청 기간만 되면 특정 인기 과목들에 수강 신청이 몰려
-문제가 되고 있다. 최근 3 년을 기준으로 수강인원이 가장 많았던 3 과목을 찾는 구문을
-작성해보시오.
-*/
-select * from tb_grade;
--- ......???????
+-- 15.최근 5년은 특정년도를 기술하지 않고, 년도값 추출후 rownum을 이용해 선택함.
+--데이터상 최근 5년 2009, 2008, 2007, 2006, 2005
+SELECT 년도
+FROM (
+    SELECT DISTINCT SUBSTR(TERM_NO, 1, 4) 년도
+    FROM TB_GRADE
+    ORDER BY 1 DESC
+    )
+WHERE ROWNUM <= 3;
+
+--과목번호, 과목이름 -> tb_class
+--수강생수 -> tb_grade
+
+SELECT 
+    *
+FROM (
+        SELECT 
+            CLASS_NO 과목번호, 
+            CLASS_NAME 과목이름, 
+            COUNT(STUDENT_NO) "수강생수(명)"
+        FROM TB_CLASS 
+            LEFT JOIN TB_GRADE  
+                USING (CLASS_NO)
+        WHERE 
+            SUBSTR(TERM_NO, 1, 4) IN ( 
+                                        SELECT 년도
+                                        FROM (
+                                                SELECT DISTINCT SUBSTR(TERM_NO, 1, 4) 년도
+                                                FROM TB_GRADE
+                                                ORDER BY 1 DESC
+                                            )
+                                        WHERE ROWNUM <= 3
+                                    )
+        GROUP BY CLASS_NO, CLASS_NAME
+        ORDER BY 3 DESC, 1)
+WHERE ROWNUM <= 3;
